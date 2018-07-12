@@ -6,6 +6,22 @@
 
 // Authors: Ashutosh,Harpreet,Inderpreet
 // Updated(12-6-16)
+
+// Examples
+//loadmatfile("data.mat")
+//sys = arx(data,[2,2,1])
+//sys  = 
+//
+//  A(z) = 1 - 1.3469229 z^-1 + 0.7420890 z^-2
+//
+//  B(z) = 1.3300766 z^-1 - 0.5726208 z^-2
+//
+//  Sampling Time = 1 seconds
+//
+//     MSE     FPE   FitPer        AIC      AICc    nAIC        BIC 
+//  7.4091  7.4388  49.9726  9689.1801  194.2693  2.0067  9711.5838
+
+
 function sys = arx(varargin)
 	[lhs , rhs] = argn();	
 	if ( rhs < 2 ) then

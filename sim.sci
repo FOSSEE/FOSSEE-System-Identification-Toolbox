@@ -1,12 +1,32 @@
 function varargout = sim(varargin)
+    
+// Simulate response of idpoly type polynomials
+// 
+// Calling Sequence
+// yData = sim(uData,sys)
+// Parameters
+// sys : idpoly type polynomial 
+// uData : plant input data in iddata class or nx1 matrix
+// yData : simulated plant output data nx1 matrix
+// Description
+// sim function returnes the simulated response of idpoly type dynamic function for the given input data 
+// 
+// Examples
+// uData = idinput(1024,'PRBS',[0 1/20],[-1 1])
+// a = [1 0.2];b = [0 0.2 0.3];
+// sys = idpoly(a,b,'Ts',0.1)
+// yData = sim(uData,sys)
+// Authors
+// Ashutosh Kumar Bhargava
+
     [lhs,rhs] = argn(0)
-    //checking the number of inputs
+    // checking the number of inputs
     if rhs < 2 || rhs > 3  then
         error(msprintf(gettext("%s: Unexpected number of input arguments "),"sim"))
     end
     modelData = varargin(2)
     inputData = varargin(1)
-    //checking the first input
+    // checking the first input
     if typeof(inputData) <> "constant" && typeof(inputData) <> "iddata"  then
         error(msprintf(gettext("%s: Plant input data must be ""iddata"" type or ""double vector"". "),"sim"))
     end
@@ -16,11 +36,11 @@ function varargout = sim(varargin)
     if ~iscolumn(inputData) then
         error(msprintf(gettext("%s: Plant input data must be ""double column vector"". "),"sim"))
     end
-    //checking the plant model type
+    // checking the plant model type
     if typeof(modelData) <> "idpoly" then
         error(msprintf(gettext("%s: Plant model must be ""idpoly"" type. "),"sim"))
     end
-    //adding noise
+    // adding noise
     if rhs == 3 then
         noiseFlag = varargin(3)
         if typeof(noiseFlag) <> 'boolean' then
@@ -29,7 +49,7 @@ function varargout = sim(varargin)
     else
         noiseFlag = %F
     end
-    //adding noise of zero mean and 1 as standard deviation
+    // adding noise of zero mean and 1 as standard deviation
     if noiseFlag then
         numberOfSamples = size(inputData,'r')
         R = = grand(numberOfSamples,1,"nor",0,1)

@@ -1,11 +1,46 @@
-// Estimates Discrete time AR model
-// A(q)y(t) =  e(t)
-// Current version uses random initial guess
 
-// Authors: Ashutosh,Harpreet,Inderpreet
-// Updated(12-6-16)
-function sys =  ar(varargin)
-//
+function sys = ar(varargin)
+// Parameters Estimation of AR model using Input Output time-domain data
+// 
+// Calling Sequence
+// sys = ar(ioData,[na])
+// 
+// Parameters
+// ioData : iddata or [outputData inputData] ,matrix of nx2 dimensions, type plant data
+// na : non-negative integer number specified as order of the polynomial A(z^-1)
+// sys : idpoly type polynomial have estimated coefficients of A(z^-1) polynomials
+// 
+// Description
+// Fit AR model on given input output data 
+// The mathematical equation of the AR model 
+// <latex>   
+// begin{eqnarray}
+// A(q)y(t) = e(t)
+// end{eqnarray}
+// </latex>
+// It is SISO type model. It minimizes the sum of the squares of nonlinear functions using Levenberg-Marquardt algorithm.
+// sys ,an idpoly type class, have different fields that contains estimated coefficients, sampling time, time unit and other estimated data in Report object.
+// 
+// Examples
+//  u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+//  a = [1 0.5];b = [0 2 3];
+//  model = idpoly(a,b,'Ts',0.1);
+//  y = sim(u,model) + rand(length(u),1);
+//  plantData = iddata(y,[],0.1);
+//  sys = ar(plantData,[2])
+// 
+// Examples
+//  u = idinput(1024,'PRBS',[0 1/20],[-1 1]);
+//  a = [1 0.5];b = [0 0.2 0.3];
+//  model = idpoly(a,b,'Ts',0.1);
+//  y = sim(u,model) + rand(length(u),1);
+//  plantData = [y];
+//  sys = ar(plantData,[2])
+// 
+// Authors
+// Ashutosh Kumar Bhargava, Bhushan Manjarekar  
+
+
 	[lhs , rhs] = argn();	
 	if ( rhs < 2 ) then
 			errmsg = msprintf(gettext("%s: Unexpected number of input arguments : %d provided while should be 2"), "ar", rhs);
@@ -41,7 +76,7 @@ function sys =  ar(varargin)
 	end
 
 	na = n; nb = 0; nk = 0; 
-    // storing U(k) , y(k) and n data in UDATA,YDATA and NDATA respectively 
+    //  storing U(k) , y(k) and n data in UDATA,YDATA and NDATA respectively 
     YDATA = z(:,1);
     UDATA = zeros(size(z,1),1)
     NDATA = size(UDATA,"*");
@@ -59,12 +94,12 @@ function sys =  ar(varargin)
     a = (poly([1,-coeff(a)],'q','coeff'))
     t = idpoly(coeff(a),1,1,1,1,Ts)
     
-    // estimating the other parameters
+    //  estimating the other parameters
     [temp1,temp2,temp3] = predict([YDATA UDATA],t)
     [temp11,temp22,temp33] = pe([YDATA UDATA],t)
     
     estData = calModelPara(temp1,temp1,n(1))
-    //pause
+    // pause
        t.Report.Fit.MSE = estData.MSE 
        t.Report.Fit.FPE = estData.FPE
     t.Report.Fit.FitPer = estData.FitPer
@@ -74,15 +109,15 @@ function sys =  ar(varargin)
        t.Report.Fit.BIC = estData.BIC
              t.TimeUnit = unit
                     sys = t
-    //sys = idpoly(coeff(a),1,1,1,1,Ts)
-//    sys.TimeUnit = unit
+    // sys = idpoly(coeff(a),1,1,1,1,Ts)
+//     sys.TimeUnit = unit
 endfunction
 
 function yhat = _objfun(UDATA,YDATA,x,na,nb,nk)
     x=x(:)
      q = poly(0,'q')
     tempSum = nb+na
-    // making polynomials
+    //  making polynomials
     b = poly([repmat(0,nk,1);x(1:nb)]',"q","coeff");
     a = 1 - poly([x(nb+1:nb+na)]',"q","coeff")
     aSize = coeff(a);bSize = coeff(b)

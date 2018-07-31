@@ -11,6 +11,6 @@ function varargout = calModelPara(varargin)
     AICc = AIC * 2 * np * (np + 1)/(N - np - 1);//disp(AICc)
     nAIC = log(mse) + 2 * np/N;//disp(nAIC)
     BIC = N * log(mse) + N * size(y,'c') * (log(2 * %pi) + 1) + np * log(N);//disp(BIC)
-    //pause
+   // pause
     varargout(1) = struct('MSE',mse,'FPE',fpe,'FitPer',nrmse*100,'AIC',AIC,'AICc',AICc,'nAIC',nAIC,'BIC',BIC)
 endfunction

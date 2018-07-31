@@ -1,17 +1,46 @@
-//[y,x0] = predict(data,idpoly,k)
-//References
-//Digital Control(11.1.2) by Kanna M.Moudgalya 
-//System Identification Theory for User Second Edition (3.2) by Lennart Ljung
-// Code Aurthor - Ashutosh Kumar Bhargava
 
 function varargout = predict(varargin)
+    
+// K-steps ahead output predictor
+// 
+// Calling Sequence
+// predict(plantData,sys)
+// predict(plantData,sys,k)
+// [yData,tData,fData] = predict(plantData,sys)
+// [yData,tData,fData] = predict(plantData,sys,k)
+// 
+// Parameters
+// plantData : iddata type or nx2 matrix
+// sys : idpoly type polynomial
+// k : non-neagtive integer prediction step 
+// yData : k step ahead predicted output response,default value is 1
+// tData : time series data
+// fData : initial state
+// 
+// Description
+// predict function consider the inital conditions as zero and predict the k step ahead output response of the sys ,idpoly type, model.
+// 
+// Examples
+// a = [1 0.2];b = [0 0.2 0.3];
+// sys = idpoly(a,b,'Ts',0.1)
+// u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+// y = sim(u,sys)+rand(1024,1)
+// plantData = iddata(y,u,0.1)
+// predict(plantData,sys)
+// figure();clf();
+// k = 5
+// predict(plantData,sys,k)
+// 
+// Authors
+// Ashutosh Kumar Bhargava
+
     [lhs,rhs] = argn(0)
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // checking the number of inputs
     if rhs < 2 || rhs > 3 then
         error(msprintf(gettext("%s:Wrong number of input arguments.\n"),"predict"))
     end
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
     data = varargin(1)
     model = varargin(2)
     if rhs == 3 then
@@ -20,7 +49,7 @@ function varargout = predict(varargin)
         kStep = 1
     end
     
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 // k step analysis
     if typeof(kStep) <> 'constant' || isnan(kStep)  then
@@ -34,15 +63,15 @@ function varargout = predict(varargin)
     if size(kStep,'*') <> 1 || (ceil(kStep)-kStep) then
         error(msprintf(gettext("%s:Prediction horizon(k) must be a non-negative integer number or inf.\n"),"predict"))
     end
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // checking the plant model
     if typeof(model) ~= 'idpoly' then
         error(msprintf(gettext("%s:Plant model must be ""idpoly"" type.\n"),"predict"))
     end
     modelSampleTime = model.Ts
     modelTimeUnit = model.TimeUnit
-//------------------------------------------------------------------------------
-//checking the data type
+// ------------------------------------------------------------------------------
+// checking the data type
     if typeof(data) <> 'iddata' && typeof(data) <> 'constant' then
         error(msprintf(gettext("%s:Sample data must be ""iddata"" type or ""n x 2"" matrix type.\n"),"predict"))
     end
@@ -54,7 +83,7 @@ function varargout = predict(varargin)
         plantSampleTime = data.Ts
         plantTimeUnit = data.TimeUnit
         data = [data.OutputData data.InputData]
-        //disp('iddata')
+        // disp('iddata')
     elseif typeof(data) == 'constant' then
         if size(data,'c') ~= 2 then
             error(msprintf(gettext("%s:Number of sample data in input and output must be equal.\n"),"predict"))
@@ -62,7 +91,7 @@ function varargout = predict(varargin)
         plantSampleTime = model.Ts
         plantTimeUnit = model.TimeUnit
     end
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // comparing the sampling time
     if modelSampleTime-plantSampleTime <> 0 then
         error(msprintf(gettext("%s:The sample time of the model and plant data must be equal.\n"),"predict"))
@@ -72,14 +101,14 @@ function varargout = predict(varargin)
     else
         error(msprintf(gettext("%s:Time unit of the model and plant data must be equal.\n"),"predict"))
     end
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // ckecking the k step size. if it greater than number of sample size then the 
 // k step will become 1 
     if kStep >= size(data,'r') then
         kStep = 1
     end
-//------------------------------------------------------------------------------
-    //storing the plant data
+// ------------------------------------------------------------------------------
+    // storing the plant data
     //           B(z)               C(z)
     // y(n) = ---------- u(n) + ---------- e(n)
     //         A(z)*F(z)         A(z)*D(z)
@@ -114,17 +143,17 @@ function varargout = predict(varargin)
         Wkq1.num = Wkq1.num/tempWkq1(1)
         Wkq1.den = Wkq1.den/tempWkq1(1)
     end
-   //pause
-//------------------------------------------------------------------------------
+   // pause
+// ------------------------------------------------------------------------------
     // storing the plant data
     uCoeff = coeff(WkqGq.num*Wkq1.den)
     yCoeff = coeff(WkqGq.den*Wkq1.num)
     yCapCoeff = coeff(WkqGq.den*Wkq1.den)
-    //pause
+    // pause
     lengthuCoeff = length(uCoeff)
     lengthyCoeff = length(yCoeff)
     lengthyCapCoeff = length(yCapCoeff)
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
     // keeping initial conditions equal to zero
     uData = zeros(lengthuCoeff,1)
     yData = zeros(lengthyCoeff,1)
@@ -132,7 +161,7 @@ function varargout = predict(varargin)
     uData = [uData;data(:,2)]
     yData = [yData;data(:,1)]
     sampleData = size(data,'r')
-    //pause
+    // pause
     // reversing the coefficients
     if ~size(uCoeff,'*') then
         uCoeff = 0
@@ -149,9 +178,9 @@ function varargout = predict(varargin)
     else
         yCapCoeff = -yCapCoeff(lengthyCapCoeff:-1:2)
     end
-    //pause
+    // pause
     for ii = 1:sampleData+1
-         //pause
+         // pause
          if ~size(uData(ii:ii+lengthuCoeff-1),'*') then
              tempu = 0
          else

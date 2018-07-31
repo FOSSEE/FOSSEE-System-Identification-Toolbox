@@ -1,6 +1,35 @@
 function varargout = impulseest(varargin)
+
+// Estimate impulse response and plot of idpoly type model
+// 
+// Calling Sequence
+// impulseest(sys)
+// impulseData = impulseest(sys,flag)
+//
+// Parameters
+// sys : idpoly type polynomial 
+// flag : boolean type variable
+// impulseData : stores impulse response if the flag value is true
+//
+// Description
+// impulseest function estimate and plot the impulse response of idpoly type function.
+//
+// Examples
+//  a = [1 0.2];b = [0 0.2 0.3];
+//  sys = idpoly(a,b,'Ts',0.1)
+//  impulseest(sys);
+// 
+// Examples
+//  a = [1 0.2];b = [0 0.2 0.3];
+//  sys = idpoly(a,b,'Ts',0.1)
+//  flag = %T
+//  impulseData = impulseest(sys,flag)
+//
+// Authors
+// Ashutosh Kumar Bhargava  
+
     [lhs,rhs] = argn(0)
-    //checking the number of inputs
+    // checking the number of inputs
     if rhs > 2  then
         error(msprintf(gettext("%s: Unexpected number of input arguments "),"impulseest"))
     end
@@ -8,7 +37,7 @@ function varargout = impulseest(varargin)
     if typeof(modelData) <> "idpoly" then
         error(msprintf(gettext("%s: Plant model must be ""idpoly"" type. "),"impulseest"))
     end
-    //adding noise
+    // adding noise
     if rhs == 2 then
         noiseFlag = varargin(2)
         if typeof(noiseFlag) <> 'boolean' then
@@ -65,7 +94,7 @@ function varargout = impulseest(varargin)
     uData = [1 zeros(1,n)]
     yData = flts(uData,sys)
     timeData = (0:(n))*modelData.Ts
-//    pause
+//     pause
     if noiseFlag then
         varargout(1) = yData'
     else

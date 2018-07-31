@@ -1,6 +1,42 @@
 function varargout = rarx(varargin)
+    
+// Parameters Estimation of ARX model by recursive method
+// 
+// Calling Sequence
+// sys = rarx(ioData,[na nb nk],lambda)
+// Parameters
+// ioData : iddata or [outputData inputData] ,matrix of nx2 dimensions, type plant data
+// na : non-negative integer number specified as order of the polynomial A(z^-1)
+// nb : non-negative integer number specified as order of the polynomial B(z^-1)+1
+// nk : non-negative integer number specified as input output delay, Default value is 1
+// lambda : Forgetting factor,Default value is 0.95
+// sys : idpoly type polynomial have estimated coefficients of A(z^-1) and B(z^-1) polynomials
+// 
+// Description
+// Fit RARX model on given input output data 
+// RARX model is SISO type model. It uses recursive weighted least-squares algorithm to estimate the coefficient of ARX model 
+// sys is a struct type variable output contains data about theta and yhat.
+// 
+// Examples
+// u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+// a = [1 0.2];b = [0 0.2 0.3];
+// model = idpoly(a,b,'Ts',0.1)
+// y = sim(u,model) + rand(length(u),1)
+// ioData = iddata(y,u,0.1)
+// sys = rarx(ioData,[2,2,1])
+// 
+// Examples
+// u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+// a = [1 0.2];b = [0 0.2 0.3];
+// model = idpoly(a,b,'Ts',0.1)
+// y = sim(u,model) + rand(length(u),1)
+// ioData = [y,u]
+// sys = rarx(ioData,[2,2,1])
+// 
+// Authors
+// Ashutosh Kumar Bhargava, Bhushan Manjarekar  
+
     [lhs,rhs] = argn(0)
-//    
     plantData = varargin(1)
     orderData = varargin(2)
     na = orderData(1);nb = orderData(2)
@@ -44,7 +80,7 @@ function varargout = rarx(varargin)
     for ii = 1:nb
         tempData(ii+nk:ii+N+nk-1,ii+na) = plantData(:,2)
     end
-    //tempData = [zeros(1,na+nb);tempData]
+    // tempData = [zeros(1,na+nb);tempData]
     tempData = tempData(1:N+1,:)
     
     for ii = 1:N

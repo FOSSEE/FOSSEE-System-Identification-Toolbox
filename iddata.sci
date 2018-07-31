@@ -1,4 +1,35 @@
 function varargout = iddata(varargin)
+
+// Stores plant input-output data
+//  
+// Calling Sequence
+// plantData = iddata(yData,uData,Ts)
+// plantData = iddata([],uData,Ts)
+// plantData = iddata(yData,[],Ts)
+// plantData = iddata(yData,uData)
+// plantData = iddata(yData)
+//
+// Parameters
+// uData : nx1 matrix of the plant input data
+// yData : nx1 matrix of the plant output data
+// Ts : non-negative real number
+// plantData : iddata type module
+//
+// Description
+// It is a iddata type module that stores the plant input and output data with sampling time Ts. The time unite is in second. 
+//
+// Examples
+// uData = idinput(1024,'PRBS',[0 1/20],[-1 1])
+// yData = rand(1024,1)
+// Ts = 0.1
+//  plantData1 = iddata(yData,uData,Ts)
+//  plantData2 = iddata(yData,[],Ts)
+//  plantData3 = iddata([],uData,Ts)
+//
+// Authors
+// Ashutosh Kumar Bhargava  
+
+
     [lhs,rhs] = argn(0)
     if rhs == 2 | rhs == 1 then
         Ts = 1

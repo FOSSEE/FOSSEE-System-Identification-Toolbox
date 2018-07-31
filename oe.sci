@@ -1,19 +1,49 @@
-// Copyright (C) 2015 - IIT Bombay - FOSSEE
-//
-// This file must be used under the terms of the CeCILL.
-// This source file is licensed as described in the file COPYING, which
-// you should have received as part of this distribution.  The terms
-// are also available at
-// http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
-// Authors: Harpreet, Ashutosh
-// Organization: FOSSEE, IIT Bombay
 
 function sys =  oe(varargin)
 
-// Estimates Discrete time BJ model
-// y(t) = [B(q)/F(q)]u(t) + [C(q)/D(q)]e(t)
-// Current version uses random initial guess
-// Need to get appropriate guess from OE and noise models
+// Parameters Estimation of OE(Output-Error) model using Input Output time-domain data
+// 
+// Calling Sequence
+// sys = oe(ioData,[nb nf nk])
+// 
+// Parameters
+// ioData : iddata or [outputData inputData] ,matrix of nx2 dimensions, type plant data
+// nb : non-negative integer number specified as order of the polynomial A(z^-1)
+// nf : non-negative integer number specified as order of the polynomial B(z^-1)+1
+// nk : non-negative integer number specified as input output delay, Default value is 1
+// sys : idpoly type polynomial have estimated coefficients of B(z^-1),f(z^-1) polynomials
+// 
+// Description
+// Fit OE model on given input output data 
+// The mathematical equation of the OE model 
+// <latex>   
+// begin{eqnarray}
+// y(n) = \frac {B(q)}{D(q)}u(n) + e(t)
+// end{eqnarray}
+// </latex>
+// It is SISO type model. It minimizes the sum of the squares of nonlinear functions using Levenberg-Marquardt algorithm.
+// sys ,an idpoly type class, have different fields that contains estimated coefficients, sampling time, time unit and other estimated data in Report object.
+// 
+// Examples
+// u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+// a = [1 2];b = [0 2 3];
+// model = idpoly(a,b,'Ts',0.1)
+// y = sim(u,model) + rand(length(u),1)
+// plantData = iddata(y,u,0.1)
+// sys = oe(plantData,[2,2,1])
+// 
+// Examples
+// u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+// a = [1 2];b = [0 2 3];
+// model = idpoly(a,b,'Ts',0.1)
+// y = sim(u,model) + rand(length(u),1)
+// plantData = [y,u]
+// sys = oe(plantData,[2,2,1])
+// 
+// Authors
+// Ashutosh Kumar Bhargava, Harpreet,Inderpreet  
+
+
 
 	[lhs , rhs] = argn();	
 	if ( rhs < 2 ) then
@@ -38,7 +68,7 @@ function sys =  oe(varargin)
 		errmsg = msprintf(gettext("%s: input and output data matrix should be a real matrix"), "oe_2");
 		error(errmsg);
 	end
-//
+// 
 	n = varargin(2)
 	if (size(n,"*")<2| size(n,"*")>3) then
 		errmsg = msprintf(gettext("%s: The order and delay matrix [nb nf nk] should be of size [2 4]"), "oe_2");
@@ -49,9 +79,9 @@ function sys =  oe(varargin)
 		errmsg = msprintf(gettext("%s: values of order and delay matrix [nb nf nk] should be nonnegative integer number "), "oe_2");
 		error(errmsg);
 	end
-//
+// 
 	nb= n(1); nf = n(2);
-//	
+// 	
 	if (size(n,"*") == 2) then
 		nk = 1
 	else
@@ -80,7 +110,7 @@ function sys =  oe(varargin)
     [temp11,temp22,temp33] = pe(z,t)
     
     estData = calModelPara(temp1,temp11,n(1)+n(2))
-    //pause
+    // pause
        t.Report.Fit.MSE = estData.MSE 
        t.Report.Fit.FPE = estData.FPE
     t.Report.Fit.FitPer = estData.FitPer
@@ -90,8 +120,8 @@ function sys =  oe(varargin)
        t.Report.Fit.BIC = estData.BIC
              t.TimeUnit = unit
                     sys = t
-    //sys = t
-    //sys.TimeUnit = unit
+    // sys = t
+    // sys.TimeUnit = unit
 endfunction
 
 function yhat = _objoefun(UDATA,YDATA,x,nf,nb,nk)

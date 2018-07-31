@@ -1,6 +1,31 @@
 function varargout = stepest(varargin)
+    
+// Estimate step response and plot of idpoly type model
+// 
+// Calling Sequence
+// stepest(sys)
+// stepData = stepest(sys,flag)
+// Parameters
+// sys : idpoly type polynomial 
+// flag : boolean type variable,default value is false(%F)
+// stepData : stores step response if the flag value is true
+// Description
+// stepest function estimate and plot the impulse response of idpoly type function.
+// Examples
+// a = [1 0.2];b = [0 0.2 0.3];
+// sys = idpoly(a,b,'Ts',0.1)
+// stepest(sys);
+// 
+// Examples
+// a = [1 0.2];b = [0 0.2 0.3];
+// sys = idpoly(a,b,'Ts',0.1)
+// flag = %T
+// stepData = stepest(sys,flag)
+// Authors
+// Ashutosh Kumar Bhargava  
+
     [lhs,rhs] = argn(0)
-    //checking the number of inputs
+    // checking the number of inputs
     if rhs > 2  then
         error(msprintf(gettext("%s: Unexpected number of input arguments "),"stepest"))
     end
@@ -8,7 +33,7 @@ function varargout = stepest(varargin)
     if typeof(modelData) <> "idpoly" then
         error(msprintf(gettext("%s: Plant model must be ""idpoly"" type. "),"stepest"))
     end
-    //adding noise
+    // adding noise
     if rhs == 2 then
         noiseFlag = varargin(2)
         if typeof(noiseFlag) <> 'boolean' then

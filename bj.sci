@@ -1,14 +1,50 @@
-// Estimates Discrete time BJ model
-// y(t) = [B(q)/F(q)]u(t) + [C(q)/D(q)]e(t)
-// Current version uses random initial guess
-// Need to get appropriate guess from OE and noise models
 
-// Authors: Ashutosh,Harpreet,Inderpreet
-// Updated(12-6-16)
-
-//function [theta_bj,opt_err,resid] =  bj(varargin)
 function sys = bj(varargin)
     
+// Parameters Estimation of BJ(Box-Jenkins) model using Input Output time-domain data
+// 
+// Calling Sequence
+// sys = bj(ioData,[nb nc nd nf nk])
+// 
+// Parameters
+// ioData : iddata or [outputData inputData] ,matrix of nx2 dimensions, type plant data
+// nb : non-negative integer number specified as order of the polynomial B(z^-1)+1
+// nc : non-negative integer number specified as order of the polynomial C(z^-1)
+// nd : non-negative integer number specified as order of the polynomial D(z^-1)
+// nf : non-negative integer number specified as order of the polynomial f(z^-1)
+// nk : non-negative integer number specified as input output delay, Default value is 1
+// sys : idpoly type polynomial have estimated coefficients of B(z^-1),C(z^-1),D(z^-1) and f(z^-1) polynomials
+// 
+// Description
+// Fit BJ model on given input output data 
+// The mathematical equation of the BJ model 
+// <latex>   
+// begin{eqnarray}
+// y(n) = \frac {B(q)}{D(q)}u(n) + \frac {C(q)}{D(q)}e(t)
+// end{eqnarray}
+// </latex>
+// It is SISO type model. It minimizes the sum of the squares of nonlinear functions using Levenberg-Marquardt algorithm.
+// sys ,an idpoly type class, have different fields that contains estimated coefficients, sampling time, time unit and other estimated data in Report object.
+// 
+// Examples
+//  u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+//  a = [1 0.5];b = [0 2 3];
+//  model = idpoly(a,b,'Ts',0.1)
+//  y = sim(u,model) + rand(length(u),1)
+//  ioData = iddata(y,u,0.1)
+//  sys = bj(ioData,[2,2,2,2,1])
+// 
+// Examples
+//  u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+//  a = [1 0.5];b = [0 2 3];
+//  model = idpoly(a,b,'Ts',0.1)
+//  y = sim(u,model) + rand(length(u),1)
+//  ioData = [y,u]
+//  sys = bj(ioData,[2,2,2,2,1])
+// 
+// Authors
+// Ashutosh Kumar Bhargava, Harpreet,Inderpreet  
+
 	[lhs , rhs] = argn();	
 	if ( rhs < 2 ) then
 			errmsg = msprintf(gettext("%s: Unexpected number of input arguments : %d provided while should be 2"), "bj", rhs);
@@ -51,12 +87,12 @@ function sys = bj(varargin)
 		nk = n(5);
 	end
 
-    // storing U(k) , y(k) and n data in UDATA,YDATA and NDATA respectively 
+    //  storing U(k) , y(k) and n data in UDATA,YDATA and NDATA respectively 
     YDATA = z(:,1);
     UDATA = z(:,2);
     NDATA = size(UDATA,"*");
     function e = G(p,m)
-        e = YDATA - _objfun(UDATA,p,nd,nc,nf,nb,nk);
+        e = YDATA - _objfunbj(UDATA,p,nd,nc,nf,nb,nk);
     endfunction
     tempSum = nb+nc+nd+nf
     p0 = linspace(0.5,0.9,tempSum)';
@@ -71,12 +107,12 @@ function sys = bj(varargin)
     f = poly([1; var(nb+nd+nc+1:nd+nc+nf+nb)]',"q","coeff");
     t = idpoly(1,coeff(b),coeff(c),coeff(d),coeff(f),Ts)
     
-    // estimating the other parameters
+    //  estimating the other parameters
     [temp1,temp2,temp3] = predict(z,t)
     [temp11,temp22,temp33] = pe(z,t)
     
     estData = calModelPara(temp1,temp11,sum(n(1:4)))
-    //pause
+    // pause
        t.Report.Fit.MSE = estData.MSE 
        t.Report.Fit.FPE = estData.FPE
     t.Report.Fit.FitPer = estData.FitPer
@@ -88,11 +124,11 @@ function sys = bj(varargin)
                     sys = t
 endfunction
 
-function yhat = _objfun(UDATA,x,nd,nc,nf,nb,nk)
+function yhat = _objfunbj(UDATA,x,nd,nc,nf,nb,nk)
     x=x(:)
      q = poly(0,'q')
     tempSum = nb+nc+nd+nf
-    // making polynomials
+    //  making polynomials
     b = poly([repmat(0,nk,1);x(1:nb)]',"q","coeff");
     c = poly([1; x(nb+1:nb+nc)]',"q","coeff");
     d = poly([1; x(nb+nc+1:nb+nc+nd)]',"q","coeff");

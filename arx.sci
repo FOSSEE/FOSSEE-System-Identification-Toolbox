@@ -1,28 +1,47 @@
-
-// Estimates Discrete time ARX model
-// A(q)y(t) = B(q)u(t) + e(t)
-// Current version uses random initial guess
-// 
-
-// Authors: Ashutosh,Harpreet,Inderpreet
-// Updated(12-6-16)
-
-// Examples
-//loadmatfile("data.mat")
-//sys = arx(data,[2,2,1])
-//sys  = 
-//
-//  A(z) = 1 - 1.3469229 z^-1 + 0.7420890 z^-2
-//
-//  B(z) = 1.3300766 z^-1 - 0.5726208 z^-2
-//
-//  Sampling Time = 1 seconds
-//
-//     MSE     FPE   FitPer        AIC      AICc    nAIC        BIC 
-//  7.4091  7.4388  49.9726  9689.1801  194.2693  2.0067  9711.5838
-
-
 function sys = arx(varargin)
+// Parameters Estimation of ARX model using Input Output time-domain data
+// 
+// Calling Sequence
+// sys = arx(ioData,[na nb nk])
+// 
+// Parameters
+// ioData : iddata or [outputData inputData] ,matrix of nx2 dimensions, type plant data
+// na : non-negative integer number specified as order of the polynomial A(z^-1)
+// nb : non-negative integer number specified as order of the polynomial B(z^-1)+1
+// nk : non-negative integer number specified as input output delay, Default value is 1
+// sys : idpoly type polynomial have estimated coefficients of A(z^-1) and B(z^-1) polynomials
+// 
+// Description
+// Fit ARX model on given input output data 
+// The mathematical equation of the ARX model 
+// <latex>   
+// begin{eqnarray}
+// A(q)y(n) = B(q)u(n) + e(t)
+// end{eqnarray}
+// </latex>
+// It is SISO type model. It minimizes the sum of the squares of nonlinear functions using Levenberg-Marquardt algorithm.
+// 
+// sys ,idpoly type, have different fields that contains estimated coefficients, sampling time, time unit and other estimated data in Report object.
+// 
+// Examples
+//  u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+//  a = [1 0.5];b = [0 2 3];
+//  model = idpoly(a,b,'Ts',0.1)
+//  y = sim(u,model) + rand(length(u),1)
+//  plantData = iddata(y,u,0.1)
+//  sys = arx(plantData,[2,2,1])
+// 
+// Examples
+//  u = idinput(1024,'PRBS',[0 1/20],[-1 1])
+//  a = [1 0.5];b = [0 2 3];
+//  model = idpoly(a,b,'Ts',0.1)
+//  y = sim(u,model) + rand(length(u),1)
+//  plantData = [y,u]
+//  sys = arx(plantData,[2,2,1])
+// 
+// Authors
+// Ashutosh Kumar Bhargava, Harpreet, Inderpreet 
+
 	[lhs , rhs] = argn();	
 	if ( rhs < 2 ) then
 			errmsg = msprintf(gettext("%s: Unexpected number of input arguments : %d provided while should be 2"), "arx", rhs);
@@ -57,15 +76,15 @@ function sys = arx(varargin)
 		error(errmsg);
 	end
 
-	na = n(1); nb = n(2); //nk = n(3); //nf = n(4);
-//	
+	na = n(1); nb = n(2); // nk = n(3); // nf = n(4);
+// 	
 	if (size(n,"*") == 2) then
 		nk = 1
 	else
 		nk = n(3);
 	end
 
-    // storing U(k) , y(k) and n data in UDATA,YDATA and NDATA respectively 
+    //  storing U(k) , y(k) and n data in UDATA,YDATA and NDATA respectively 
     YDATA = z(:,1);
     UDATA = z(:,2);
     NDATA = size(UDATA,"*");
@@ -84,12 +103,12 @@ function sys = arx(varargin)
     a = (poly([1,-coeff(a)],'q','coeff'))
     t = idpoly(coeff(a),coeff(b),1,1,1,Ts)
     
-    // estimating the other parameters
+    //  estimating the other parameters
     [temp1,temp2,temp3] = predict(z,t)
     [temp11,temp22,temp33] = pe(z,t)
     
     estData = calModelPara(temp1,temp1,n(1)+n(2))
-    //pause
+    // pause
        t.Report.Fit.MSE = estData.MSE 
        t.Report.Fit.FPE = estData.FPE
     t.Report.Fit.FitPer = estData.FitPer
@@ -106,7 +125,7 @@ function yhat = _objfunarx(UDATA,YDATA,x,na,nb,nk)
     x=x(:)
      q = poly(0,'q')
     tempSum = nb+na
-    // making polynomials
+    //  making polynomials
     b = poly([repmat(0,nk,1);x(1:nb)]',"q","coeff");
     a = 1 - poly([x(nb+1:nb+na)]',"q","coeff")
     aSize = coeff(a);bSize = coeff(b)

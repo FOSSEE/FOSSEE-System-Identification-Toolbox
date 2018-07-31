@@ -1,4 +1,34 @@
 function sys = idpoly(varargin)
+
+// Stores the identification coefficients
+// 
+// Calling Sequence
+// sys = idpoly(aCoeff,bCoeff,cCoeff,dCoeff,fCoeff,Ts)
+// 
+// Parameters
+// aCoeff : 1xn coefficient matrix of the polynomial A(z^-1)
+// bCoeff : 1xn coefficient matrix of the polynomial B(z^-1)
+// cCoeff : 1xn coefficient matrix of the polynomial C(z^-1)
+// dCoeff : 1xn coefficient matrix of the polynomial D(z^-1)
+// fCoeff : 1xn coefficient matrix of the polynomial F(z^-1)
+// 
+// Description
+// It is a idpoly type polynomials that stores the identification coefficients A,B,C,D, and F with sampling time Ts. The time unite is in second. It stores other parameters
+//  in Report object.
+// Examples
+// aCoeff = [1 rand(1,2)]
+// bCoeff = [0 rand(1,3)]
+// cCoeff = [1 rand(1,2)]
+// dCoeff = [1 rand(1,2)]
+// fCoeff = [1 rand(1,2)]
+// Ts = 0.1
+// sys1 = idpoly(aCoeff,bCoeff,cCoeff,dCoeff,fCoeff,Ts)
+// sys2 = idpoly(aCoeff,bCoeff,cCoeff,'Ts',Ts)
+// sys1 = idpoly(1,bCoeff,cCoeff,1,fCoeff,Ts)
+// 
+// Authors
+// Ashutosh Kumar Bhargava  
+
     [lhs,rhs] = argn(0)
     tempCell = cell(6,1)
     tempTs = 0
@@ -12,7 +42,7 @@ function sys = idpoly(varargin)
             tempCell{ii,1} = varargin(ii)
         end
     end
-    //disp(tempCell)
+    // disp(tempCell)
     for ii = 1:6 
         if ~size(cell2mat(tempCell(ii,1)),'*') & ii ~= 6 then
             tempCell{ii,1} = 1
@@ -20,10 +50,10 @@ function sys = idpoly(varargin)
             tempCell{ii,1} = -1
         end
     end
-    //storing the data in A,B,C,D,F matrix
-    //          B(z)             D(z)
-    // y(n)=---------- u(n)+ ----------- e(n)
-    //       A(z)F(z)          A(z)D(z)
+    // storing the data in A,B,C,D,F matrix
+    //           B(z)             D(z)
+    //  y(n)=---------- u(n)+ ----------- e(n)
+    //        A(z)F(z)          A(z)D(z)
     A = cell2mat(tempCell(1,1));  B = cell2mat(tempCell(2,1));
     C = cell2mat(tempCell(3,1));  D = cell2mat(tempCell(4,1));
     F = cell2mat(tempCell(5,1)); Ts = cell2mat(tempCell(6,1));
@@ -40,7 +70,7 @@ function sys = idpoly(varargin)
     errors = [0 0 0]
     report = struct('Fit',report,'Uncertainty',errors)
     t = tlist(['idpoly','a','b','c','d','f','Variable','TimeUnit','Ts','Report'],A,B,C,D,F,'z^-1','seconds',Ts,report)
-    //t = tlist(['idpoly','a','b','c','d','f','Variable','TimeUnit','Ts'],A,B,C,D,F,'z^-1','seconds',Ts)
+    // t = tlist(['idpoly','a','b','c','d','f','Variable','TimeUnit','Ts'],A,B,C,D,F,'z^-1','seconds',Ts)
     
     sys = t
 endfunction
@@ -48,7 +78,7 @@ endfunction
 
 function %idpoly_p(mytlist)
     f = fieldnames(mytlist)
-    //A polynomial
+    // A polynomial
     if mytlist(f(1)) == 1 && size(mytlist(f(1)),'*') == 1 then
     else
         mprintf('\n  A(z) =')
@@ -56,7 +86,7 @@ function %idpoly_p(mytlist)
         mprintf('%s\n',temp)
     end
     
-    //B polynomial
+    // B polynomial
     if mytlist(f(2)) == 1 then
     else
         mprintf('\n  B(z) =')
@@ -64,14 +94,14 @@ function %idpoly_p(mytlist)
         mprintf('%s\n',temp)
     end
     
-    //C polynomial
+    // C polynomial
     if mytlist(f(3)) == 1 && size(mytlist(f(3)),'*') == 1 then
     else
         mprintf('\n  C(z) =')
         temp = poly2str(mytlist(f(3)))
         mprintf('%s\n',temp)
     end
-    //D polynomial
+    // D polynomial
     if mytlist(f(4)) == 1 && size(mytlist(f(4)),'*') == 1 then
     elseif size(mytlist(f(4)),'*') > 1 then
         mprintf('\n  D(z) =')
@@ -79,7 +109,7 @@ function %idpoly_p(mytlist)
         mprintf('%s\n',temp)
     end
     
-    //F polynomial
+    // F polynomial
     if mytlist(f(5)) == 1 && size(mytlist(f(5)),'*') == 1 then
     else
         mprintf('\n  F(z) =')
@@ -98,7 +128,7 @@ function %idpoly_p(mytlist)
             mprintf('%0.4f %s',mytlist.Ts,mytlist.TimeUnit)
         end
     end
-    //disp(mytlist.Ts)
+    // disp(mytlist.Ts)
     mprintf('\n')
     if mytlist.Report.Fit.MSE then
         temp = ['MSE','FPE','FitPer','AIC','AICc','nAIC','BIC']
@@ -130,8 +160,8 @@ function strout = poly2str(h)
     temp = strsubst(temp,'*','')
     temp = strsubst(temp,'+',' + ')
     [ind which]=strindex(temp,'-')
-    //disp(ind)
-//    disp(which)
+    // disp(ind)
+//     disp(which)
     if ind(1,1) ~= 2 then
         temp = ' ' + temp
     elseif ind(1,1) == 2 then
